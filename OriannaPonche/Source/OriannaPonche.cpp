@@ -533,9 +533,7 @@ void GetBallLocation()
 
 void KillSteal()
 {
-	float QDamage;
-	float WDamage;
-	float RDamage;
+	float EnemyHealth;
 
 	if (!KillStealDisabled->Enabled()) 
 	{ 
@@ -543,14 +541,12 @@ void KillSteal()
 		{
 			if (!Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible())
 			{
-				QDamage = GHealthPrediction->GetKSDamage(Enemy, kSlotQ, (Enemy->GetPosition() - BallLocation).Length2D() / Q->Speed(), true);
-				WDamage = GHealthPrediction->GetKSDamage(Enemy, kSlotW, W->GetDelay(), false);
-				RDamage = GHealthPrediction->GetKSDamage(Enemy, kSlotR, R->GetDelay(), false);
-				if (KillStealW->Enabled() && W->IsReady() && (Enemy->GetPosition() - BallLocation).Length2D() < MiscW->GetInteger() && WDamage > Enemy->GetHealth())
+				EnemyHealth = Enemy->GetHealth();
+				if (KillStealW->Enabled() && W->IsReady() && Enemy->IsValidObject() && (Enemy->GetPosition() - BallLocation).Length2D() < MiscW->GetInteger() && GHealthPrediction->GetKSDamage(Enemy, kSlotW, W->GetDelay(), false) > EnemyHealth)
 				{
 					CastW();
 				}
-				if (Q->IsReady() && KillStealQ->Enabled() && Enemy->IsValidTarget(Player, Q->Range()) && QDamage > Enemy->GetHealth())
+				if (Q->IsReady() && KillStealQ->Enabled() && Enemy->IsValidTarget(Player, Q->Range()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, Q->GetDelay(), true) > EnemyHealth)
 				{
 					if (KillStealE->Enabled() && E->IsReady())
 					{
@@ -558,7 +554,7 @@ void KillSteal()
 					}
 					CastQTarget(Enemy);
 				}
-				if (KillStealR->Enabled() && R->IsReady() && (Enemy->GetPosition() - BallLocation).Length2D() < RRange->GetInteger() && IsEnough(BallLocation, RRange->GetInteger()) >= KillStealMin->GetInteger() && RDamage > Enemy->GetHealth())
+				if (KillStealR->Enabled() && R->IsReady() && Enemy->IsValidTarget() && (Enemy->GetPosition() - BallLocation).Length2D() < RRange->GetInteger() && IsEnough(BallLocation, RRange->GetInteger()) >= KillStealMin->GetInteger() && GHealthPrediction->GetKSDamage(Enemy, kSlotR, R->GetDelay(), false) > EnemyHealth)
 				{
 					CastR();
 				}

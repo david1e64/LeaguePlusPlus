@@ -206,14 +206,11 @@ PLUGIN_EVENT(void) OnRender()
 		if (DrawHarass->Enabled())
 		{
 			DrawHarassColor->GetColor(&Color);
-			if (HarassToggle)
+			if (HarassToggle && Player->GetHPBarPosition(Pos))
 			{
-				if (Player->GetHPBarPosition(Pos))
-				{
-					Pos.x += 20;
-					Pos.y += 50;
-					GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
-				}
+				Pos.x += 20;
+				Pos.y += 50;
+				GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
 			}
 
 		}
@@ -358,7 +355,7 @@ int GetRDelay()
 
 void KillSteal()
 {
-	float RDamage;
+	float EnemyHealth;
 
 	if (!KillStealDisabled->Enabled()) 
 	{ 
@@ -366,16 +363,16 @@ void KillSteal()
 		{
 			if (!Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible())
 			{
-				RDamage = GHealthPrediction->GetKSDamage(Enemy, kSlotR, GetRDelay(), false);
-				if (Q->IsReady() && KillStealQ->Enabled() && Enemy->IsValidTarget(Player, Q->Range()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, 0.f, true) > Enemy->GetHealth())
+				EnemyHealth = Enemy->GetHealth();
+				if (Q->IsReady() && KillStealQ->Enabled() && Enemy->IsValidTarget(Player, Q->Range()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, 0.f, true) > EnemyHealth)
 				{
 					CastQ(Enemy);
 				}
-				if (W->IsReady() && KillStealW->Enabled() && Enemy->IsValidTarget(Player, W->Range()) && Enemy->HasBuff("kennenmarkofstorm") && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, 0.25, false) > Enemy->GetHealth())
+				if (W->IsReady() && KillStealW->Enabled() && Enemy->IsValidTarget(Player, W->Range()) && Enemy->HasBuff("kennenmarkofstorm") && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, 0.25, false) > EnemyHealth)
 				{
 					CastW();
 				}
-				if (R->IsReady() && KillStealR->Enabled() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, GetRDelay(), false) > Enemy->GetHealth() && CountR() >= KillStealMin->GetInteger())
+				if (R->IsReady() && KillStealR->Enabled() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, GetRDelay(), false) > EnemyHealth && CountR() >= KillStealMin->GetInteger())
 				{
 					CastR();
 				}
