@@ -116,7 +116,7 @@ void LoadMenu()
 	HarassMenu = MainMenu->AddMenu("Harass Manager");
 	HarassQ = HarassMenu->CheckBox("Use Q", true);
 	HarassW = HarassMenu->CheckBox("Use W", true);
-	HarassWOnly = ComboMenu->CheckBox("Only W If It Will Stun", false);
+	HarassWOnly = HarassMenu->CheckBox("Only W If It Will Stun", false);
 	HarassE = HarassMenu->CheckBox("Use E", false);
 	HarassToggleKey = HarassMenu->AddKey("Key", 87);
 	HarassDisabled = HarassMenu->CheckBox("Disable All", false);
@@ -203,29 +203,32 @@ PLUGIN_EVENT(void) OnRender()
 				GRender->DrawOutlinedCircle(HeroPos, Color, RRange->GetInteger());
 			}
 		}
-		if (DrawHarass->Enabled())
+		if (DrawHarass->Enabled() && HarassToggle && Player->GetHPBarPosition(Pos))
 		{
 			DrawHarassColor->GetColor(&Color);
-			if (HarassToggle && Player->GetHPBarPosition(Pos))
-			{
-				Pos.x += 20;
-				Pos.y += 50;
-				GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
-			}
-
+			Pos.x += 20;
+			Pos.y += 50;
+			GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
 		}
 	}
 }
 
-int CountR()
+int CountR(bool stat)
 {
 	auto Count = 0;
 
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (Enemy != nullptr && Enemy->IsValidObject() && Enemy->IsVisible() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && !Enemy->IsDead() && !Enemy->HasBuff("sionpassivezombie"))
+		if (Enemy != nullptr && Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->IsDead() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && !Enemy->HasBuff("sionpassivezombie"))
 		{
-			Count += RMenu->GetOption(Enemy->ChampionName())->GetInteger();
+			if (stat == true)
+			{
+				Count += RMenu->GetOption(Enemy->ChampionName())->GetInteger();
+			}
+			else
+			{
+				Count += 1;
+			}
 		}
 	}
 	return (Count);
@@ -238,7 +241,7 @@ int IsEnough(Vec3 Location, int range)
 
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (Enemy != nullptr && Enemy->IsValidTarget() && !Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible())
+		if (Enemy != nullptr &&  Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->IsDead() && Enemy->IsValidTarget())
 		{
 			GPrediction->GetFutureUnitPosition(Enemy, W->GetDelay(), true, Pos);
 			if ((Pos - Location).Length2D() <= range)
@@ -278,7 +281,7 @@ bool CheckW(IUnit *target)
 	}
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (Enemy != nullptr && Enemy->IsValidTarget(Player, W->Range()) && !Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible())
+		if (Enemy != nullptr && Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->IsDead() && Enemy->IsValidTarget(Player, W->Range()))
 		{
 			if (Enemy->GetBuffCount("kennenmarkofstorm") > 1)
 			{
@@ -308,7 +311,7 @@ void Combo()
 	{
 		CastW();
 	}
-	if (ComboR->Enabled() && R->IsReady() && !RAuto->Enabled() && CountR() >= RMin->GetInteger())
+	if (ComboR->Enabled() && R->IsReady() && !RAuto->Enabled() && CountR(true) >= RMin->GetInteger())
 	{
 		CastR();
 	}
@@ -372,7 +375,7 @@ void KillSteal()
 				{
 					CastW();
 				}
-				if (R->IsReady() && KillStealR->Enabled() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, GetRDelay(), false) > EnemyHealth && CountR() >= KillStealMin->GetInteger())
+				if (R->IsReady() && KillStealR->Enabled() && Enemy->IsValidTarget(Player, RRange->GetInteger()) && GHealthPrediction->GetKSDamage(Enemy, kSlotQ, GetRDelay(), false) > EnemyHealth && CountR(false) >= KillStealMin->GetInteger())
 				{
 					CastR();
 				}
@@ -406,7 +409,7 @@ void ChangeHarassToggle()
 PLUGIN_EVENT(void) OnGameUpdate()
 {
 	KillSteal();
-	if (RAuto->Enabled() && R->IsReady() && CountR() >= RMin->GetInteger())
+	if (RAuto->Enabled() && ComboR->Enabled() && R->IsReady() && CountR(true) >= RMin->GetInteger())
 	{
 		CastR();
 	}
