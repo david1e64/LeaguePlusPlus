@@ -279,19 +279,12 @@ PLUGIN_EVENT(void) OnRender()
 			DrawBallColor->GetColor(&Color);
 			GRender->DrawLine(BallPos, HeroPos, Color);
 		}
-		if (DrawHarass->Enabled())
+		if (DrawHarass->Enabled() && HarassToggle && Player->GetHPBarPosition(Pos))
 		{
 			DrawHarassColor->GetColor(&Color);
-			if (HarassToggle)
-			{
-				if (Player->GetHPBarPosition(Pos))
-				{
-					Pos.x += 20;
-					Pos.y += 50;
-					GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
-				}
-			}
-
+			Pos.x += 20;
+			Pos.y += 50;
+			GRender->DrawText(Pos, Color, "Harass Toggle Enabled");
 		}
 	}
 }
@@ -303,7 +296,7 @@ int IsEnoughR(Vec3 Location, int range)
 
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (Enemy != nullptr && Enemy->IsValidTarget() && !Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->HasBuff("sionpassivezombie"))
+		if (Enemy != nullptr &&  Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->IsDead() && Enemy->IsValidTarget() && !Enemy->HasBuff("sionpassivezombie"))
 		{
 			GPrediction->GetFutureUnitPosition(Enemy, R->GetDelay(), true, Pos);
 			if ((Pos - Location).Length2D() < range)
@@ -322,7 +315,7 @@ int IsEnough(Vec3 Location, int range)
 
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		if (Enemy != nullptr && Enemy->IsValidTarget() && !Enemy->IsDead() && Enemy->IsValidObject() && Enemy->IsVisible())
+		if (Enemy != nullptr && Enemy->IsValidObject() && Enemy->IsVisible() && !Enemy->IsDead() && Enemy->IsValidTarget())
 		{
 			GPrediction->GetFutureUnitPosition(Enemy, W->GetDelay(), true, Pos);
 			if ((Pos - Location).Length2D() <= range)
@@ -340,7 +333,7 @@ float IsEnoughMinions(Vec3 Location, int range)
 
 	for (auto Minion : GEntityList->GetAllMinions(false, true, true))
 	{
-		if (Minion != nullptr && Minion->IsValidTarget() && !Minion->IsDead() && Minion->IsValidObject() && Minion->IsVisible())
+		if (Minion != nullptr && Minion->IsValidObject() && Minion->IsVisible() && !Minion->IsDead() && Minion->IsValidTarget())
 		{
 			GPrediction->GetFutureUnitPosition(Minion, W->GetDelay(), true, Pos);
 			if ((Pos - Location).Length2D() < range)
